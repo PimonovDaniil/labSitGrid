@@ -37,11 +37,18 @@ while True:
         # print("Контрольная сумма совпадает")
         data = json.loads(data[1])
         if data[0] == 1:
+            print("Получили данные о расчётчике " + str(data[1]) + " " + str(data[2]))
             raschetchiki.append([data[1], data[2]])
             md5 = hashlib.md5()
             md5.update(b'True')
             # sendto - передача сообщения UDP
             udp_socket.sendto(json.dumps([md5.hexdigest(), 'True']).encode(), addr)
+        elif data[0] == 2:
+            md5 = hashlib.md5()
+            md5.update(json.dumps(raschetchiki).encode())
+            # sendto - передача сообщения UDP
+            udp_socket.sendto(json.dumps([md5.hexdigest(), json.dumps(raschetchiki)]).encode(), addr)
+            print("Отправили данные о расчётчике основному клиенту")
     else:
         md5 = hashlib.md5()
         md5.update(b'False')
