@@ -39,8 +39,10 @@ def getRequest(data, host, port):
         raise Exception('Контрольная сумма полученного сообщения не совпадает!')
     udp_socket.close()
 
-@Thr.thread
+
+@Thr.thread  # TODO поменять потоки
 def getSum(data, host, port, a, b):
+    # print(sys.getsizeof(data))  # TODO максимальный размер поля — 65535 байт для UDP-датаграммы
     flagKrSum = True
     while flagKrSum:
         flagKrSum = False
@@ -73,6 +75,33 @@ def getSum(data, host, port, a, b):
             print("Контрольная сумма полученного сообщения не совпадает!")
 
         udp_socket.close()
+
+
+def check_size(data, host, port, a, b):
+    maxSize = 130  # размер датаграммы
+    massData = [json.loads(data)]
+    massData[0].append(a)
+    massData[0].append(b)
+    print(massData) 
+    flag = True
+    while flag:
+        flag = False
+        for i in range(len(massData)):
+            #print(sys.getsizeof(json.dumps(massData[i])))
+            if sys.getsizeof(json.dumps(massData[i])) > maxSize:
+                flag = True
+                m1 = [massData[i][0][0: len(massData[i][0]) // 2], massData[i][1][0: len(massData[i][0]) // 2],
+                      massData[i][2], (massData[i][2] + massData[i][3]) // 2]
+                m2 = [massData[i][0][len(massData[i][0]) // 2: len(massData[i][0])], massData[i][1][len(massData[i][0]) // 2: len(massData[i][0])],
+                      (massData[i][2] + massData[i][3]) // 2, massData[i][3]]
+                massData.append(m1)
+                massData.append(m2)
+                del massData[i]
+                break
+    print(massData)
+
+
+    # print(sys.getsizeof(massData))
 
 
 # говорим серверу, что мы расчётчик
@@ -110,27 +139,29 @@ if l_raschetchiki > 0:
     m1 = list(m1)[0]
     m2 = list(m2)[0]
 
-    # getSum(json.dumps([list(m1), list(m2)]), raschetchiki[0][0], raschetchiki[0][1], 0, 12)
-    k = 0
-    kol_ras = 0
-    for i in range(0, l1 * l2, (l1 * l2) // l_raschetchiki):
-        if i + l_raschetchiki >= l1 * l2:
-            print(m1[i:l1 * l2])
-            kol_ras += 1
-            getSum(json.dumps([list(m1[i:l1 * l2]), list(m2[i:l1 * l2])]), raschetchiki[k][0], raschetchiki[k][1], i, l1 * l2)
-            break
-        else:
-            kol_ras += 1
-            print(m1[i:i + ((l1 * l2) // l_raschetchiki)])
-            getSum(json.dumps([list(m1[i:i + ((l1 * l2) // l_raschetchiki)]), list(m2[i:i + ((l1 * l2) // l_raschetchiki)])]), raschetchiki[k][0], raschetchiki[k][1], i,
-                   i + ((l1 * l2) // l_raschetchiki))
-        k += 1
-    while kol_ras != 0:
-        print("Ждём "+ str(kol_ras) + " расчётчиклв")
-    result = np.array([sumMatrix])
-    result.shape = (l1, l2)
-    print("\n\nРезультат сложения матриц:")
-    print(result)
+    check_size(json.dumps([list(m1), list(m2)]), raschetchiki[0][0], raschetchiki[0][1], 0, 12)
+    # k = 0
+    # kol_ras = 0
+    # for i in range(0, l1 * l2, (l1 * l2) // l_raschetchiki):
+    #     if i + l_raschetchiki >= l1 * l2:
+    #         print(m1[i:l1 * l2])
+    #         kol_ras += 1
+    #         getSum(json.dumps([list(m1[i:l1 * l2]), list(m2[i:l1 * l2])]), raschetchiki[k][0], raschetchiki[k][1], i,
+    #                l1 * l2)
+    #         break
+    #     else:
+    #         kol_ras += 1
+    #         print(m1[i:i + ((l1 * l2) // l_raschetchiki)])
+    #         getSum(json.dumps(
+    #             [list(m1[i:i + ((l1 * l2) // l_raschetchiki)]), list(m2[i:i + ((l1 * l2) // l_raschetchiki)])]),
+    #                raschetchiki[k][0], raschetchiki[k][1], i,
+    #                i + ((l1 * l2) // l_raschetchiki))
+    #     k += 1
+    # while kol_ras != 0:
+    #     print("Ждём " + str(kol_ras) + " расчётчиклв")
+    # result = np.array([sumMatrix])
+    # result.shape = (l1, l2)
+    # print("\n\nРезультат сложения матриц:")
+    # print(result)
 else:
     print("А нет у нас расчётчиков :(")
-
