@@ -8,7 +8,7 @@ import json
 
 # данные сервера
 myHost = 'localhost'
-myPort = 778
+myPort = 779
 
 
 def getRequest(data, host, port):

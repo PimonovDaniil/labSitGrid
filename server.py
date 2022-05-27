@@ -1,7 +1,7 @@
 # Запросы к серверу
 # 1 - сообщить свой адрес
 # 2 - узнать вдреса расчётчиков
-
+# TODO 3 - отключить расчётчик
 # Модуль socket для сетевого программирования
 import time
 from socket import *
@@ -38,7 +38,14 @@ while True:
         data = json.loads(data[1])
         if data[0] == 1:
             print("Получили данные о расчётчике " + str(data[1]) + " " + str(data[2]))
-            raschetchiki.append([data[1], data[2]])
+
+            flag = True  # проверяем на повторное подключение
+            for raschetchik in raschetchiki:
+                if raschetchik[0] == data[1] and raschetchik[1] == data[2]:
+                    flag = False
+                    break
+            if flag:
+                raschetchiki.append([data[1], data[2]])
             md5 = hashlib.md5()
             md5.update(b'True')
             # sendto - передача сообщения UDP
